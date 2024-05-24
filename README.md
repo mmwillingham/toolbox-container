@@ -198,7 +198,8 @@ oc get pod
 Connect to the *toolbox-container* container:
 
 ```
-oc rsh toolbox-container-<hash>
+# oc rsh toolbox-container-<hash>
+oc rsh $(oc get pods -oname)
 ```
 
 ### Configuring toolbox-container
