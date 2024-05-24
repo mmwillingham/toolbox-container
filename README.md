@@ -203,9 +203,13 @@ oc patch deployment toolbox-container --type json --patch '[{"op": "replace", "p
 # Wait for pods to be ready
 watch oc get pods
 oc rsh $(oc get pods -oname)
-
 ```
 Note that instead of using the deployment commands in this section one-by-one, you can leverage the Kustomize scripts located in the [deploy directory](deploy).
+
+From argocd cli:
+```
+argocd app create toolbox --repo https://github.com/mmwillingham/toolbox-container.git --path deploy --dest-server https://kubernetes.default.svc --sync-policy automated --self-heal --sync-option Prune=true --dest-namespace toolbox
+```
 
 ### Deploying toolbox-container
 
