@@ -12,6 +12,7 @@ configMapGenerator:
   - init.sh
 
 resources:
+- namespace.yaml
 - toolbox-container-deploy.yaml
 - toolbox-container-sa.yaml
 #- toolbox-container-home-pvc.yaml
