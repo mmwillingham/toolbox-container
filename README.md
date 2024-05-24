@@ -179,6 +179,32 @@ You can use the Toolbox Container image in conjuction with the [kubectl-debugpod
 
 ## Deploying Toolbox Container to OpenShift cluster
 
+### All the following steps in one:
+```
+oc create deployment toolbox-container --image quay.io/noseka1/toolbox-container:basic
+oc get pod
+# oc rsh $(oc get pods -oname) # moved to end
+# Running as privileged container
+oc create serviceaccount toolbox-container
+oc adm policy add-scc-to-user privileged --serviceaccount toolbox-container
+oc patch deployment toolbox-container --type json --patch '[{"op": "add", "path": "/spec/template/spec/serviceAccountName", "value": "toolbox-container"}]'
+oc patch deployment toolbox-container --type json --patch '[{"op": "add", "path": "/spec/template/spec/containers/0/securityContext", "value": { "privileged": true }}]'
+oc set volume deployment/toolbox-container --add --type persistentVolumeClaim --name home --claim-name toolbox-container-home --claim-size 50G --mount-path /home/toolbox
+oc set volume deployment/toolbox-container --add --name host --type hostPath --path / --mount-path /host
+cat >init.sh <<EOF
+echo Hello from the custom init script!
+EOF
+oc create configmap toolbox-container-init --from-file=init.sh
+oc set volume deployment/toolbox-container --add --name init --type configmap --configmap-name toolbox-container-init --mount-path /toolbox
+oc adm policy add-cluster-role-to-user cluster-admin --serviceaccount toolbox-container
+oc patch deployment toolbox-container --type json --patch '[{"op": "add", "path": "/spec/template/spec/nodeName", "value": "ip-10-0-143-77.us-west-2.compute.internal"}]'
+oc patch deployment toolbox-container --type json --patch '[{"op": "replace", "path": "/spec/template/spec/hostPID", "value": true}]'
+oc patch deployment toolbox-container --type json --patch '[{"op": "replace", "path": "/spec/template/spec/hostIPC", "value": true}]'
+# Wait for pods to be ready
+watch oc get pods
+oc rsh $(oc get pods -oname)
+
+```
 Note that instead of using the deployment commands in this section one-by-one, you can leverage the Kustomize scripts located in the [deploy directory](deploy).
 
 ### Deploying toolbox-container
